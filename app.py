@@ -1,3 +1,4 @@
+import git
 from datetime import datetime
 from flask import Flask, render_template, request, flash, redirect, flash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -94,3 +95,11 @@ def register():
         return redirect('/login')
     elif request.method == 'GET':
         return render_template('register.html')
+
+@app.route('/update_server', methods=['POST'])
+def webhook():
+    if request.method == 'POST':
+        git.Repo('https://github.com/wjmolina/PythonAnywhereApp').remotes.origin.pull()
+        return 'Updated PythonAnywhere successfully', 200
+    else:
+        return 'Wrong event type', 400
