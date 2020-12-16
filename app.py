@@ -100,7 +100,7 @@ def register():
 @app.route('/update_server', methods=['POST'])
 def webhook():
     if request.method == 'POST':
-        git.Repo('home/wjm/PythonAnywhereApp').remotes.origin.pull()
+        git.Repo('/home/wjm/PythonAnywhereApp').remotes.origin.pull()
         return 'Successful Server Update', 200
     else:
         return 'Wrong Method', 400
