@@ -72,7 +72,8 @@ def login():
         return redirect('/')
     if request.method == 'POST':
         if request.form['button'] == 'login':
-            if user := User.query.filter_by(name=request.form['name'], password=request.form['password']).first():
+            user = User.query.filter_by(name=request.form['name'], password=request.form['password']).first()
+            if user:
                 login_user(user)
                 return redirect('/')
             else:
