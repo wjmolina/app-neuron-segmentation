@@ -104,6 +104,6 @@ def webhook():
             git.Repo().remotes.origin.pull()
         except Exception e:
             return e, 500
-        return 'Successful Server Update', 200
+        return 'Successful Server Update!', 200
     else:
         return 'Wrong Method', 400
