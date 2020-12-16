@@ -106,7 +106,7 @@ def register():
 @app.route('/update_server', methods=['POST'])
 def webhook():
     if request.method == 'POST':
-        if not is_valid_signature(request.headers.get('X-Hub-Signature'), request.data, SECRET_TOKEN):
+        if is_valid_signature(request.headers.get('X-Hub-Signature'), request.data, SECRET_TOKEN):
             git.Repo('/home/wjm/PythonAnywhereApp').remotes.origin.pull()
             return 'Successful Server Update!', 200
         else:
