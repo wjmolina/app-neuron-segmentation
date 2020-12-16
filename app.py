@@ -101,6 +101,6 @@ def register():
 def webhook():
     if request.method == 'POST':
         git.Repo('https://github.com/wjmolina/PythonAnywhereApp').remotes.origin.pull()
-        return 'Updated PythonAnywhere successfully', 200
+        return 'Successful Server Update', 200
     else:
         return 'Wrong Method', 400
