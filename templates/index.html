@@ -13,19 +13,19 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-4"></div>
-            <div class="col-2">
+            <div class="col-2"></div>
+            <div class="col-4">
                 <button name="button" class="btn form-control btn-primary" value="post_comment">Comment</button>
             </div>
-            <div class="col-2">
+            <div class="col-4">
                 <button name="button" class="btn form-control btn-secondary" value="logout">Log Out</button>
             </div>
-            <div class="col-4"></div>
+            <div class="col-2"></div>
         </div>
         <table class="table table-hover table-striped table-bordered">
             <tr>
                 <th class='col-1'>Name</th>
-                <th class='col-3'>Date & Time</th>
+                <th class='col-3'>Date</th>
                 <th class='col-8'>Comment</th>
             </tr>
             {% for comment in comments %}
