@@ -1,18 +1,19 @@
-import git
+from datetime import datetime
 import hashlib
 import hmac
 import os
 
-from datetime import datetime
 from flask import Flask, render_template, request, flash, redirect, flash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
+import git
 from sqlalchemy import desc
+
+SECRET_TOKEN = os.getenv('SECRET_TOKEN')
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-SECRET_TOKEN = os.getenv('SECRET_TOKEN')
 app.secret_key = SECRET_TOKEN
 
 login_manager = LoginManager()
