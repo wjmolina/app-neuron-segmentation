@@ -1,4 +1,7 @@
 import git
+import hashlib
+import hmac
+import os
 
 from datetime import datetime
 from flask import Flask, render_template, request, flash, redirect, flash
@@ -9,7 +12,8 @@ from sqlalchemy import desc
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = 'EsX_Team'
+SECRET_TOKEN = os.getenv('SECRET_TOKEN')
+app.secret_key = SECRET_TOKEN
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -100,7 +104,17 @@ def register():
 @app.route('/update_server', methods=['POST'])
 def webhook():
     if request.method == 'POST':
-        git.Repo('/home/wjm/PythonAnywhereApp').remotes.origin.pull()
-        return 'Successful Server Update!', 200
+        if not is_valid_signature(request.headers.get('X-Hub-Signature'), request.data, SECRET_TOKEN):
+            git.Repo('/home/wjm/PythonAnywhereApp').remotes.origin.pull()
+            return 'Successful Server Update!', 200
+        else:
+            return 'Invalid Signature', 401
     else:
         return 'Wrong Method', 400
+
+def is_valid_signature(x_hub_signature, data, private_key):
+    hash_algorithm, github_signature = x_hub_signature.split('=', 1)
+    algorithm = hashlib.__dict__.get(hash_algorithm)
+    encoded_key = bytes(private_key, 'latin-1')
+    mac = hmac.new(encoded_key, msg=data, digestmod=algorithm)
+    return hmac.compare_digest(mac.hexdigest(), github_signature)
