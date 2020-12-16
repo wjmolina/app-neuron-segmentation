@@ -103,4 +103,4 @@ def webhook():
         git.Repo('https://github.com/wjmolina/PythonAnywhereApp').remotes.origin.pull()
         return 'Updated PythonAnywhere successfully', 200
     else:
-        return 'Wrong event type', 400
+        return 'Wrong Method', 400
