@@ -101,6 +101,6 @@ def register():
 def webhook():
     if request.method == 'POST':
         git.Repo('.').remotes.origin.pull()
-        return 'Successful Server Update', 200
+        return 'Server Update Successful', 200
     else:
         return 'Wrong Method', 400
