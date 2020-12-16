@@ -102,7 +102,7 @@ def webhook():
     if request.method == 'POST':
         try:
             git.Repo().remotes.origin.pull()
-        except Exception e:
+        except Exception as e:
             return e, 500
         return 'Successful Server Update!', 200
     else:
