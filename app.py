@@ -13,7 +13,7 @@ from sqlalchemy import desc
 SECRET_TOKEN = os.getenv('SECRET_TOKEN')
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = SECRET_TOKEN
 
