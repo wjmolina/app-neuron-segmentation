@@ -2,6 +2,7 @@ from datetime import datetime
 import hashlib
 import hmac
 import os
+import requests
 
 from flask import Flask, render_template, request, flash, redirect, flash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -20,6 +21,20 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 db = SQLAlchemy(app)
+
+class Api:
+    def __init__(self):
+        self.base_url = 'https://financialmodelingprep.com/api/v3/'
+        self.api_key = f'&apikey={os.getenv("financialmodelingprep_apikey")}'
+    
+    def get_stock_news(self):
+        return requests.get(
+            self.base_url
+            + f'stock_news?'
+            + self.api_key
+        ).json()
+
+api = Api()
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -113,6 +128,10 @@ def webhook():
             return 'Invalid Signature', 401
     else:
         return 'Wrong Method', 400
+
+@app.route('/stock_news')
+def stock_news():
+    return render_template('stock_news.html', data=api.get_stock_news())
 
 def is_valid_signature(x_hub_signature, data, private_key):
     hash_algorithm, github_signature = x_hub_signature.split('=', 1)
