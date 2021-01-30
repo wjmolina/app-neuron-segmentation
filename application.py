@@ -1,8 +1,8 @@
 import io
 from base64 import b64encode
 
-import cv2
 import numpy as np
+from cv2 import cv2
 from flask import Flask, redirect, render_template, request
 from PIL import Image
 
