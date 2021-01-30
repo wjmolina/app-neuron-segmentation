@@ -76,7 +76,3 @@ def is_valid_signature(x_hub_signature, data, private_key):
     encoded_key = bytes(private_key, 'latin-1')
     mac = hmac.new(encoded_key, msg=data, digestmod=algorithm)
     return hmac.compare_digest(mac.hexdigest(), github_signature)
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
