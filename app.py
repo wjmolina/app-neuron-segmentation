@@ -1,122 +1,62 @@
-from datetime import datetime
 import hashlib
 import hmac
+import io
 import os
-import requests
+from base64 import b64encode
 
-from flask import Flask, render_template, request, flash, redirect, flash
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-from flask_sqlalchemy import SQLAlchemy
+import cv2
 import git
-from sqlalchemy import desc
+import numpy as np
+from flask import Flask, redirect, render_template, request
+from PIL import Image
+
+import main
 
 SECRET_TOKEN = os.getenv('SECRET_TOKEN')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = SECRET_TOKEN
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+app.config['UPLOAD_FOLDER'] = 'uploaded_images'
 
-login_manager = LoginManager()
-login_manager.init_app(app)
 
-db = SQLAlchemy(app)
-
-class Api:
-    def __init__(self):
-        self.base_url = 'https://financialmodelingprep.com/api/v3/'
-        self.api_key = f'&apikey={os.getenv("financialmodelingprep_apikey")}'
-    
-    def get_stock_news(self):
-        return requests.get(
-            self.base_url
-            + f'stock_news?'
-            + self.api_key
-        ).json()
-
-api = Api()
-
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200), unique=True, nullable=False)
-    password = db.Column(db.String(200), nullable=False)
-    datetime_created = db.Column(db.DateTime, default=datetime.utcnow)
-    comments = db.relationship('Comment', back_populates='user')
-
-class Comment(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    comment = db.Column(db.String(200), nullable=False)
-    datetime_created = db.Column(db.DateTime, default=datetime.utcnow)
-    user = db.relationship('User', back_populates='comments')
-
-@app.route('/', methods=['GET', 'POST'])
-@login_required
+@app.route('/')
 def index():
+    return render_template('index.html')
+
+
+@app.route('/segment', methods=['GET', 'POST'])
+def segment():
     if request.method == 'POST':
-        if request.form['comment'] != '' and request.form['button'] == 'post_comment':
-            db.session.add(Comment(
-                user_id=current_user.id,
-                comment=request.form['comment'],
-            ))
-            db.session.commit()
-        elif request.form['button'] == 'logout':
-            return redirect('/logout')
-    return render_template(
-        'index.html',
-        comments=Comment.query.order_by(desc(Comment.datetime_created)).all()
-    )
+        if (
+            'file' not in request.files or
+            not request.files['file'].filename or
+            '.' not in request.files['file'].filename or
+            request.files['file'].filename.split('.')[-1].lower() not in {
+                'png', 'jpg', 'jpeg', 'gif'
+            }
+        ):
+            return redirect(request.url)
+        file = request.files['file']
 
-@login_manager.user_loader
-def load_user(id):
-    return User.query.filter_by(id=id).first()
+        original_image = cv2.imdecode(np.fromstring(file.read(), np.uint8), cv2.IMREAD_COLOR)
+        image = main.resize(original_image)
+        res = "data:image/png;base64," + b64encode(cv2.imencode('.png', image)[1]).decode('ascii')
 
-@login_manager.unauthorized_handler
-def unauthorized_callback():
-    return redirect('/login')
+        output_1, output_2 = main.evaluate(image)
 
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect('/login')
+        seg_byt = io.BytesIO()
+        seg_img = Image.fromarray((output_1 * 255).astype('uint8'))
+        seg_img.save(seg_byt, 'PNG')
+        seg = "data:image/png;base64," + b64encode(seg_byt.getvalue()).decode('ascii')
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if current_user.is_authenticated:
-        return redirect('/')
-    if request.method == 'POST':
-        if request.form['button'] == 'login':
-            user = User.query.filter_by(name=request.form['name'], password=request.form['password']).first()
-            if user:
-                login_user(user)
-                return redirect('/')
-            else:
-                return render_template('login.html', message='Invalid Credentials')
-        elif request.form['button'] == 'register':
-            return redirect('/register')
-    elif request.method == 'GET':
-        return render_template('login.html')
+        ext_byt = io.BytesIO()
+        ext_img = Image.fromarray((output_2 * 255).astype('uint8'))
+        ext_img.save(ext_byt, 'PNG')
+        ext = "data:image/png;base64," + b64encode(ext_byt.getvalue()).decode('ascii')
+        return render_template('segment.html', res=res, seg=seg, ext=ext)
+    return render_template('segment.html')
 
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if current_user.is_authenticated:
-        return redirect('/')
-    if request.method == 'POST':
-        if request.form['button'] == 'register':
-            if request.form['password'] != request.form['confirm']:
-                return render_template('register.html', message='Password Mismatch')
-            db.session.add(User(
-                name=request.form['name'],
-                password=request.form['password'],
-            ))
-            try:
-                db.session.commit()
-            except:
-                return render_template('register.html', message='Name Taken')
-        return redirect('/login')
-    elif request.method == 'GET':
-        return render_template('register.html')
 
 @app.route('/update_server', methods=['POST'])
 def webhook():
@@ -129,9 +69,6 @@ def webhook():
     else:
         return 'Wrong Method', 400
 
-@app.route('/stock_news')
-def stock_news():
-    return render_template('stock_news.html', data=api.get_stock_news())
 
 def is_valid_signature(x_hub_signature, data, private_key):
     hash_algorithm, github_signature = x_hub_signature.split('=', 1)
@@ -139,3 +76,7 @@ def is_valid_signature(x_hub_signature, data, private_key):
     encoded_key = bytes(private_key, 'latin-1')
     mac = hmac.new(encoded_key, msg=data, digestmod=algorithm)
     return hmac.compare_digest(mac.hexdigest(), github_signature)
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
