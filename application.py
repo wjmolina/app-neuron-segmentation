@@ -1,8 +1,6 @@
 import io
 from base64 import b64encode
 
-import numpy as np
-from cv2 import cv2
 from flask import Flask, redirect, render_template, request
 from PIL import Image
 
@@ -33,9 +31,12 @@ def segment():
             return redirect(request.url)
         file = request.files['file']
 
-        original_image = cv2.imdecode(np.fromstring(file.read(), np.uint8), cv2.IMREAD_COLOR)
-        image = main.resize(original_image)
-        res = "data:image/png;base64," + b64encode(cv2.imencode('.png', image)[1]).decode('ascii')
+        ori_img = Image.open(io.BytesIO(file.read()))
+        image = main.resize(ori_img)
+
+        buffered = io.BytesIO()
+        image.save(buffered, format="PNG")
+        res = "data:image/png;base64," + b64encode(buffered.getvalue()).decode('ascii')
 
         output_1, output_2 = main.evaluate(image)
 

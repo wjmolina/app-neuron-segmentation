@@ -1,7 +1,7 @@
-import cv2
 import numpy as np
 import torch
 import torch.nn.functional as F
+from PIL import ImageOps
 from skimage.filters import threshold_otsu
 from skimage.morphology import binary_opening, disk
 
@@ -17,7 +17,7 @@ model.eval()
 
 
 def resize(image):
-    return cv2.resize(image, dsize=(512, 512), interpolation=cv2.INTER_CUBIC)
+    return image.resize((512, 512))
 
 
 def evaluate(image):
@@ -25,8 +25,7 @@ def evaluate(image):
     input  : RGB (png, jpg, etc.) image of neuron
     output : B&W image of segmentation, B&W image of soma
     '''
-    cv2.normalize(image,  image, 0, 255, cv2.NORM_MINMAX)
-    input = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    input = ImageOps.grayscale(image)
     input = np.reshape(input, (1, 1, 512, 512))
     input = torch.from_numpy(input)
     input = input.type(torch.FloatTensor)
