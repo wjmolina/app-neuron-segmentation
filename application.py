@@ -1,23 +1,17 @@
-import hashlib
-import hmac
 import io
-import os
 from base64 import b64encode
 
 import cv2
-import git
 import numpy as np
 from flask import Flask, redirect, render_template, request
 from PIL import Image
 
 import main
 
-SECRET_TOKEN = os.getenv('SECRET_TOKEN')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 application = Flask(__name__)
 application.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
-application.config['UPLOAD_FOLDER'] = 'uploaded_images'
 
 
 @application.route('/')
@@ -56,23 +50,3 @@ def segment():
         ext = "data:image/png;base64," + b64encode(ext_byt.getvalue()).decode('ascii')
         return render_template('segment.html', res=res, seg=seg, ext=ext)
     return render_template('segment.html')
-
-
-@application.route('/update_server', methods=['POST'])
-def webhook():
-    if request.method == 'POST':
-        if is_valid_signature(request.headers.get('X-Hub-Signature'), request.data, SECRET_TOKEN):
-            git.Repo('/home/wjm/PythonAnywhereApp').remotes.origin.pull()
-            return 'Successful Server Update!', 200
-        else:
-            return 'Invalid Signature', 401
-    else:
-        return 'Wrong Method', 400
-
-
-def is_valid_signature(x_hub_signature, data, private_key):
-    hash_algorithm, github_signature = x_hub_signature.split('=', 1)
-    algorithm = hashlib.__dict__.get(hash_algorithm)
-    encoded_key = bytes(private_key, 'latin-1')
-    mac = hmac.new(encoded_key, msg=data, digestmod=algorithm)
-    return hmac.compare_digest(mac.hexdigest(), github_signature)
