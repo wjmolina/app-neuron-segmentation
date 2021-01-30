@@ -15,17 +15,17 @@ import main
 SECRET_TOKEN = os.getenv('SECRET_TOKEN')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
-app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
-app.config['UPLOAD_FOLDER'] = 'uploaded_images'
+application = Flask(__name__)
+application.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+application.config['UPLOAD_FOLDER'] = 'uploaded_images'
 
 
-@app.route('/')
+@application.route('/')
 def index():
     return render_template('index.html')
 
 
-@app.route('/segment', methods=['GET', 'POST'])
+@application.route('/segment', methods=['GET', 'POST'])
 def segment():
     if request.method == 'POST':
         if (
@@ -58,7 +58,7 @@ def segment():
     return render_template('segment.html')
 
 
-@app.route('/update_server', methods=['POST'])
+@application.route('/update_server', methods=['POST'])
 def webhook():
     if request.method == 'POST':
         if is_valid_signature(request.headers.get('X-Hub-Signature'), request.data, SECRET_TOKEN):
