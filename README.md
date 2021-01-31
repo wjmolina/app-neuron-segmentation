@@ -19,6 +19,6 @@ $ flask run
 
 The web application takes a PNG, JPG, JPEG, or GIF file and displays three 512×512 images:
 
- - The original image (resized),
+ - the original image (resized),
  - the segmented image, and
  - the soma extraction.
