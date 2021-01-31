@@ -32,7 +32,7 @@ def segment():
         file = request.files['file']
 
         ori_img = Image.open(io.BytesIO(file.read()))
-        image = main.resize(ori_img)
+        image = ori_img.resize((512, 512))
 
         buffered = io.BytesIO()
         image.save(buffered, format="PNG")

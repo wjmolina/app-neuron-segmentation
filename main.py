@@ -16,10 +16,6 @@ for parameter in model.parameters():
 model.eval()
 
 
-def resize(image):
-    return image.resize((512, 512))
-
-
 def evaluate(image):
     '''
     input  : RGB (png, jpg, etc.) image of neuron
@@ -38,12 +34,3 @@ def evaluate(image):
     output[0, 0] = output[0, 0] > threshold_otsu(output[0, 0])
 
     return output[0, 0], output[0, 1]
-
-
-# test_image = cv2.imread('test_img.jfif')
-# output_1, output_2 = evaluate(test_image)
-# plt.figure()
-# plt.imshow(output_1)
-# plt.figure()
-# plt.imshow(output_2)
-# plt.show()
