@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% set active_page = 'home' %}
+
+{% block header %}
+    <div class="container d-flex align-items-center flex-column">
+        <div class="container">
+            <img class="rounded-circle col-md-3 masthead-avatar mb-5" src="../static/assets/img/michela.jfif" alt="" />
+            <img class="rounded-circle col-md-3 masthead-avatar mb-5" src="../static/assets/img/germana.jfif" alt="" />
+            <img class="rounded-circle col-md-3 masthead-avatar mb-5" src="../static/assets/img/demetrio.jpg" alt="" />
+            <img class="rounded-circle col-md-3 masthead-avatar mb-5" src="../static/assets/img/wilfredo.jfif" alt="" />
+        </div>
+        <h1 class="masthead-heading text-uppercase mb-0">Neuron Segmentation</h1>
+        <div class="divider-custom divider-light">
+            <div class="divider-custom-line"></div>
+            <div class="divider-custom-icon"><i class="fas fa-star"></i></div>
+            <div class="divider-custom-line"></div>
+        </div>
+        <p class="masthead-subheading font-weight-light mb-0">Michela Marini | Germana Landi, Ph.D. | Demetrio Labate, Ph.D. | Wilfredo Molina, Ph.D.</p>
+    </div>
+{% endblock %}
