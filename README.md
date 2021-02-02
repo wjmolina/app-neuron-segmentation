@@ -3,6 +3,8 @@
 
 A U-Net by Michela Marini that segments neurons and a web application by Wilfredo Molina.
 
+http://gettingstartedapp-env.eba-2xyek76r.us-east-2.elasticbeanstalk.com/
+
 # Setup
 
 Create a virtual environment, activate it, and execute
