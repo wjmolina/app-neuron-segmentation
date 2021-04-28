@@ -21,6 +21,7 @@ db = SQLAlchemy(application)
 class SegmentMetrics(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     used_datetime = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    filename = db.Column(db.String)
 
 
 db.create_all()
@@ -43,8 +44,6 @@ def segment_metrics():
 @application.route('/segment', methods=['GET', 'POST'])
 def segment():
     if request.method == 'POST':
-        db.session.add(SegmentMetrics())
-        db.session.commit()
         if (
             'file' not in request.files or
             not request.files['file'].filename or
@@ -54,6 +53,8 @@ def segment():
             }
         ):
             return redirect(request.url)
+        db.session.add(SegmentMetrics(filename=request.files['file'].filename))
+        db.session.commit()
         file = request.files['file']
 
         ori_img = Image.open(io.BytesIO(file.read()))
