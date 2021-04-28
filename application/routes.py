@@ -1,15 +1,29 @@
 import io
+import datetime
 from base64 import b64encode
 
 import michela.main as main
-from flask import Flask, redirect, render_template, request
+from flask import redirect, render_template, request
 from PIL import Image
+from flask_sqlalchemy import SQLAlchemy
 
 from application import application
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 application.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+application.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///sqlite3.db'
+application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(application)
+
+
+class SegmentMetrics(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    used_datetime = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+
+db.create_all()
 
 
 @application.route('/')
@@ -17,9 +31,20 @@ def index():
     return render_template('index.html')
 
 
+@application.route('/segment_metrics')
+def segment_metrics():
+    return render_template('segment_metrics.html', data=sorted(
+        db.session.query(SegmentMetrics).all(),
+        key=lambda x: x.used_datetime,
+        reverse=True
+    ))
+
+
 @application.route('/segment', methods=['GET', 'POST'])
 def segment():
     if request.method == 'POST':
+        db.session.add(SegmentMetrics())
+        db.session.commit()
         if (
             'file' not in request.files or
             not request.files['file'].filename or
